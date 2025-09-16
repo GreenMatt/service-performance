@@ -1,0 +1,98 @@
+[
+  {
+    "WorkOrderId": "WO-2024-001245",
+    "Status": "Open",
+    "Priority": "Critical",
+    "ServiceType": "Internal",
+    "Site": "L-FBK",
+    "Technician": "Smith, J.",
+    "CreatedDate": "2024-09-01T08:30:00Z",
+    "PromisedDate": "2024-09-16T17:00:00Z",
+    "ClosedDate": null,
+    "AgeDays": 14,
+    "Parts": [
+      { "ItemId": "BEARING-6205", "Qty": 2 },
+      { "ItemId": "SEAL-VITON-25", "Qty": 1 }
+    ]
+  },
+  {
+    "WorkOrderId": "WO-2024-001246",
+    "Status": "WaitingParts",
+    "Priority": "High",
+    "ServiceType": "External",
+    "Site": "B-XYZ",
+    "Technician": "Johnson, R.",
+    "CreatedDate": "2024-08-25T14:15:00Z",
+    "PromisedDate": "2024-09-20T12:00:00Z",
+    "ClosedDate": null,
+    "AgeDays": 21,
+    "Parts": [
+      { "ItemId": "MOTOR-3HP-1800", "Qty": 1 },
+      { "ItemId": "COUPLING-JAW-L100", "Qty": 1 }
+    ]
+  },
+  {
+    "WorkOrderId": "WO-2024-001247",
+    "Status": "InProgress",
+    "Priority": "Normal",
+    "ServiceType": "Internal",
+    "Site": "L-FBK",
+    "Technician": "Davis, M.",
+    "CreatedDate": "2024-09-12T10:20:00Z",
+    "PromisedDate": "2024-09-18T16:00:00Z",
+    "ClosedDate": null,
+    "AgeDays": 3,
+    "Parts": [
+      { "ItemId": "BELT-A42", "Qty": 2 },
+      { "ItemId": "PULLEY-4IN-BORE", "Qty": 1 }
+    ]
+  },
+  {
+    "WorkOrderId": "WO-2024-001248",
+    "Status": "Scheduled",
+    "Priority": "Low",
+    "ServiceType": "Warranty",
+    "Site": "C-ABC",
+    "Technician": "Wilson, K.",
+    "CreatedDate": "2024-09-10T16:45:00Z",
+    "PromisedDate": "2024-09-25T09:00:00Z",
+    "ClosedDate": null,
+    "AgeDays": 5,
+    "Parts": [
+      { "ItemId": "FILTER-OIL-HF6177", "Qty": 3 },
+      { "ItemId": "GASKET-FLANGE-6IN", "Qty": 2 }
+    ]
+  },
+  {
+    "WorkOrderId": "WO-2024-001249",
+    "Status": "Open",
+    "Priority": "High",
+    "ServiceType": "Internal",
+    "Site": "L-FBK",
+    "Technician": "Brown, T.",
+    "CreatedDate": "2024-08-15T09:10:00Z",
+    "PromisedDate": "2024-09-15T15:00:00Z",
+    "ClosedDate": null,
+    "AgeDays": 31,
+    "Parts": [
+      { "ItemId": "PUMP-IMPELLER-8IN", "Qty": 1 },
+      { "ItemId": "VOLUTE-CASE-8IN", "Qty": 1 },
+      { "ItemId": "SHAFT-SS-316L", "Qty": 1 }
+    ]
+  },
+  {
+    "WorkOrderId": "WO-2024-001250",
+    "Status": "Closed",
+    "Priority": "Normal",
+    "ServiceType": "External",
+    "Site": "B-XYZ",
+    "Technician": "Miller, L.",
+    "CreatedDate": "2024-09-05T13:20:00Z",
+    "PromisedDate": "2024-09-12T11:00:00Z",
+    "ClosedDate": "2024-09-11T16:30:00Z",
+    "AgeDays": 6,
+    "Parts": [
+      { "ItemId": "VALVE-BALL-2IN", "Qty": 2 }
+    ]
+  }
+]

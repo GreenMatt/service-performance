@@ -1,0 +1,66 @@
+[
+  {
+    "ItemId": "BEARING-6205",
+    "Site": "L-FBK",
+    "Source": "PO",
+    "Ref": "PO-2024-5678",
+    "Qty": 50,
+    "ETA": "2024-09-20T00:00:00Z"
+  },
+  {
+    "ItemId": "SEAL-VITON-25",
+    "Site": "L-FBK",
+    "Source": "PO", 
+    "Ref": "PO-2024-5679",
+    "Qty": 100,
+    "ETA": "2024-09-25T00:00:00Z"
+  },
+  {
+    "ItemId": "MOTOR-3HP-1800",
+    "Site": "B-XYZ",
+    "Source": "PO",
+    "Ref": "PO-2024-5680",
+    "Qty": 2,
+    "ETA": null
+  },
+  {
+    "ItemId": "COUPLING-JAW-L100",
+    "Site": "B-XYZ",
+    "Source": "TransferOrder",
+    "Ref": "TO-2024-0123",
+    "Qty": 5,
+    "ETA": "2024-09-18T00:00:00Z"
+  },
+  {
+    "ItemId": "BELT-A42",
+    "Site": "L-FBK",
+    "Source": "PO",
+    "Ref": "PO-2024-5681",
+    "Qty": 20,
+    "ETA": "2024-09-22T00:00:00Z"
+  },
+  {
+    "ItemId": "PUMP-IMPELLER-8IN",
+    "Site": "L-FBK",
+    "Source": "PO",
+    "Ref": "PO-2024-5682",
+    "Qty": 1,
+    "ETA": "2024-10-15T00:00:00Z"
+  },
+  {
+    "ItemId": "VOLUTE-CASE-8IN",
+    "Site": "L-FBK",
+    "Source": "PO",
+    "Ref": "PO-2024-5683",
+    "Qty": 1,
+    "ETA": "2024-10-20T00:00:00Z"
+  },
+  {
+    "ItemId": "FILTER-OIL-HF6177",
+    "Site": "C-ABC",
+    "Source": "TransferOrder",
+    "Ref": "TO-2024-0124",
+    "Qty": 30,
+    "ETA": "2024-09-17T00:00:00Z"
+  }
+]

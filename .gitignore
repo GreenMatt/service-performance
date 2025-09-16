@@ -1,0 +1,33 @@
+# Node
+node_modules/
+.npm/
+
+# Next.js
+.next/
+out/
+.next-static/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env & secrets
+.env*
+!.env.example
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Build artifacts
+coverage/
+dist/
+
+# Misc
+*.local
+*.cache

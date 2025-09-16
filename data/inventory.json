@@ -1,0 +1,122 @@
+[
+  {
+    "ItemId": "BEARING-6205",
+    "ItemName": "Ball Bearing 6205-2RS",
+    "Site": "L-FBK",
+    "Warehouse": "WH-01",
+    "OnHand": 15,
+    "SafetyStock": 25,
+    "MinOnHand": 20,
+    "AvgDailyDemand": 1.2
+  },
+  {
+    "ItemId": "SEAL-VITON-25",
+    "ItemName": "Viton O-Ring 25mm",
+    "Site": "L-FBK", 
+    "Warehouse": "WH-01",
+    "OnHand": 8,
+    "SafetyStock": 15,
+    "MinOnHand": 10,
+    "AvgDailyDemand": 0.8
+  },
+  {
+    "ItemId": "MOTOR-3HP-1800",
+    "ItemName": "Electric Motor 3HP 1800RPM",
+    "Site": "B-XYZ",
+    "Warehouse": "WH-02",
+    "OnHand": 0,
+    "SafetyStock": 2,
+    "MinOnHand": 1,
+    "AvgDailyDemand": 0.1
+  },
+  {
+    "ItemId": "COUPLING-JAW-L100",
+    "ItemName": "Jaw Coupling L100 Series",
+    "Site": "B-XYZ",
+    "Warehouse": "WH-02",
+    "OnHand": 3,
+    "SafetyStock": 5,
+    "MinOnHand": 2,
+    "AvgDailyDemand": 0.3
+  },
+  {
+    "ItemId": "BELT-A42",
+    "ItemName": "V-Belt A42 Classical",
+    "Site": "L-FBK",
+    "Warehouse": "WH-01",
+    "OnHand": 12,
+    "SafetyStock": 10,
+    "MinOnHand": 6,
+    "AvgDailyDemand": 0.5
+  },
+  {
+    "ItemId": "PULLEY-4IN-BORE",
+    "ItemName": "Pulley 4\" Bore Split Taper",
+    "Site": "L-FBK",
+    "Warehouse": "WH-01",
+    "OnHand": 2,
+    "SafetyStock": 4,
+    "MinOnHand": 2,
+    "AvgDailyDemand": 0.2
+  },
+  {
+    "ItemId": "FILTER-OIL-HF6177",
+    "ItemName": "Hydraulic Oil Filter HF6177",
+    "Site": "C-ABC",
+    "Warehouse": "WH-03",
+    "OnHand": 25,
+    "SafetyStock": 20,
+    "MinOnHand": 15,
+    "AvgDailyDemand": 2.1
+  },
+  {
+    "ItemId": "GASKET-FLANGE-6IN",
+    "ItemName": "Flange Gasket 6\" 150# RF",
+    "Site": "C-ABC",
+    "Warehouse": "WH-03",
+    "OnHand": 6,
+    "SafetyStock": 8,
+    "MinOnHand": 4,
+    "AvgDailyDemand": 0.4
+  },
+  {
+    "ItemId": "PUMP-IMPELLER-8IN",
+    "ItemName": "Centrifugal Pump Impeller 8\"",
+    "Site": "L-FBK",
+    "Warehouse": "WH-01",
+    "OnHand": 0,
+    "SafetyStock": 1,
+    "MinOnHand": 1,
+    "AvgDailyDemand": 0.05
+  },
+  {
+    "ItemId": "VOLUTE-CASE-8IN",
+    "ItemName": "Pump Volute Case 8\" Cast Iron",
+    "Site": "L-FBK",
+    "Warehouse": "WH-01",
+    "OnHand": 0,
+    "SafetyStock": 1,
+    "MinOnHand": 1,
+    "AvgDailyDemand": 0.05
+  },
+  {
+    "ItemId": "SHAFT-SS-316L",
+    "ItemName": "Pump Shaft SS316L 8\" Series",
+    "Site": "L-FBK",
+    "Warehouse": "WH-01",
+    "OnHand": 1,
+    "SafetyStock": 2,
+    "MinOnHand": 1,
+    "AvgDailyDemand": 0.03
+  },
+  {
+    "ItemId": "VALVE-BALL-2IN",
+    "ItemName": "Ball Valve 2\" 600# SW",
+    "Site": "B-XYZ",
+    "Warehouse": "WH-02",
+    "OnHand": 8,
+    "SafetyStock": 6,
+    "MinOnHand": 3,
+    "AvgDailyDemand": 0.7
+  }
+]
