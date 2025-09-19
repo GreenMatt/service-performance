@@ -7,7 +7,7 @@ const nextConfig = {
   },
   // Optimize for dashboard performance
   swcMinify: true,
-  reactStrictMode: true,
+  reactStrictMode: false, // Disabled to prevent double API calls in development
   // Configure revalidation defaults
   async headers() {
     return [

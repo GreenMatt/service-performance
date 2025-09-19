@@ -45,27 +45,44 @@ async function getSynapseConfig(): Promise<sql.config> {
       encrypt: true, // Azure requires encryption
       trustServerCertificate: false,
       enableArithAbort: true,
-      requestTimeout: 60000,
-      connectionTimeout: 30000,
+      requestTimeout: 120000, // Increased to 2 minutes
+      connectionTimeout: 60000, // Increased to 1 minute
+      validateBulkLoadParameters: false,
     },
     pool: {
       max: 10,
-      min: 0,
-      idleTimeoutMillis: 30000,
+      min: 1, // Keep at least 1 connection alive
+      idleTimeoutMillis: 300000, // 5 minutes idle timeout
+      acquireTimeoutMillis: 60000,
+      createTimeoutMillis: 60000,
     },
   };
 }
 
 let pool: sql.ConnectionPool | null = null;
 let poolPromise: Promise<sql.ConnectionPool> | null = null;
+let lastTokenRefresh: number = 0;
+const TOKEN_REFRESH_INTERVAL = 45 * 60 * 1000; // 45 minutes (tokens expire in 1 hour)
 
 export async function getDatabase(): Promise<sql.ConnectionPool> {
   if (process.env.USE_MOCK_DATA === 'true') {
     throw new Error('Mock data mode enabled - use mock APIs instead');
   }
 
-  // Fast path
-  if (pool) return pool;
+  // Check if we need to refresh the token/connection
+  const now = Date.now();
+  const needsRefresh = now - lastTokenRefresh > TOKEN_REFRESH_INTERVAL;
+
+  // Fast path - but only if token is still fresh
+  if (pool && pool.connected && !needsRefresh) return pool;
+
+  // If token needs refresh, reset pool to force reconnection
+  if (needsRefresh && pool) {
+    console.log('Token refresh needed, closing existing connection...');
+    await pool.close().catch(() => {}); // Ignore close errors
+    pool = null;
+    poolPromise = null;
+  }
 
   // Serialize concurrent initial connections across API calls
   if (!poolPromise) {
@@ -75,6 +92,9 @@ export async function getDatabase(): Promise<sql.ConnectionPool> {
         const p = new sql.ConnectionPool(config);
         await p.connect();
         console.log(`Connected to Azure Synapse (db: ${process.env.SYNAPSE_DATABASE || '(default)'} ) with Entra ID authentication`);
+
+        // Update token refresh timestamp
+        lastTokenRefresh = Date.now();
 
         pool = p;
         return p;

@@ -37,6 +37,10 @@ export const SWR_KEYS = {
     `/api/supply${filters ? '?' + buildQueryString(filters) : ''}`,
   demand: (filters?: Record<string, any>) => 
     `/api/demand${filters ? '?' + buildQueryString(filters) : ''}`,
-  snapshot: (filters?: Record<string, any>) => 
+  snapshot: (filters?: Record<string, any>) =>
     `/api/snapshot${filters ? '?' + buildQueryString(filters) : ''}`,
+  workOrderProducts: (filters?: Record<string, any>) =>
+    `/api/work-order-products${filters ? '?' + buildQueryString(filters) : ''}`,
+  workOrderServices: (filters?: Record<string, any>) =>
+    `/api/work-order-services${filters ? '?' + buildQueryString(filters) : ''}`,
 } as const;

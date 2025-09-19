@@ -1,8 +1,9 @@
 // Data contract types from CLAUDE.md section 4
+import React from 'react'
 
 export interface WorkOrder {
   WorkOrderId: string;
-  Status: 'Open' | 'InProgress' | 'WaitingParts' | 'Scheduled' | 'Closed' | 'Cancelled';
+  Status: 'Open' | 'InProgress' | 'WaitingParts' | 'Scheduled' | 'Completed' | 'Posted' | 'Closed' | 'Cancelled';
   Priority: 'Critical' | 'High' | 'Normal' | 'Low';
   ServiceType: 'Internal' | 'External' | 'Warranty';
   Site: string;
@@ -10,6 +11,12 @@ export interface WorkOrder {
   CreatedDate: string; // ISO
   PromisedDate?: string; // ISO
   ClosedDate?: string; // ISO
+  StartDate?: string; // ISO - when work actually started (msdyn_firstarrivedon)
+  WIPValue: number; // msdyn_productsservicescost - cost of products and services used
+  TotalPartsCost: number; // itw_totalcostpart - total parts cost
+  TotalLabourCost: number; // itw_totalcostlabour - total labour cost
+  GrossMargin: number; // itw_grossmargin2 - gross margin percentage
+  TotalAmount: number; // msdyn_totalamount - total revenue amount
   AgeDays: number;
   Parts: Array<{ ItemId: string; Qty: number }>;
 }
@@ -43,11 +50,33 @@ export interface DemandRow {
   NeedBy?: string | null; // ISO
 }
 
+export interface WorkOrderProduct {
+  WorkOrderId: string;
+  ProductId: string;
+  ProductName?: string;
+  QtyUsed: number;
+  QtyAllocated: number;
+  UnitCost: number;
+  LineValue: number;
+  LineStatus: 'Estimated' | 'Used' | 'Canceled' | 'Unknown';
+}
+
+export interface WorkOrderService {
+  WorkOrderId: string;
+  ServiceTaskType: string;
+  Duration: number;
+  EstimatedDuration: number;
+  TaskStatus: 'Estimated' | 'Open' | 'Completed' | 'Canceled' | 'Unknown';
+  PercentComplete: number;
+  IsApproved: boolean;
+}
+
 export interface SnapshotRow {
   ItemId: string;
   Site: string;
   Warehouse?: string;
   OnHand: number;
+  Available?: number;
   SafetyStock: number;
   MinOnHand?: number;
   InboundQty: number;
@@ -72,6 +101,7 @@ export interface KpiCardData {
   deltaType?: 'increase' | 'decrease';
   caption?: string;
   breakdown?: Record<string, number>;
+  customContent?: React.ReactNode;
 }
 
 // Filter types

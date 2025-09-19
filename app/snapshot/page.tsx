@@ -13,6 +13,7 @@ import { calculateSnapshotSummary } from '@/lib/kpi'
 import { ArrowLeft, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { SynapseStatus } from '@/components/synapse-status'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default function SnapshotPage() {
   const router = useRouter()
@@ -59,11 +60,11 @@ export default function SnapshotPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-white border border-red-200 rounded-lg p-6">
-            <h1 className="text-xl font-semibold text-red-600 mb-2">Error Loading Snapshot</h1>
-            <p className="text-gray-600">
+          <div className="bg-card border border-destructive/20 rounded-lg p-6">
+            <h1 className="text-xl font-semibold text-destructive mb-2">Error Loading Snapshot</h1>
+            <p className="text-muted-foreground">
               Unable to fetch snapshot data. Please check the API connection.
             </p>
           </div>
@@ -73,9 +74,9 @@ export default function SnapshotPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-white">
+      <header className="border-b bg-background border-border">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -86,11 +87,14 @@ export default function SnapshotPage() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Current Position Snapshot</h1>
-                <p className="text-gray-600">Supply vs demand analysis</p>
+                <h1 className="text-2xl font-bold text-foreground">Current Position Snapshot</h1>
+                <p className="text-muted-foreground">Supply vs demand analysis</p>
               </div>
             </div>
-            <SynapseStatus />
+            <div className="flex items-center gap-4">
+              <SynapseStatus />
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
@@ -100,20 +104,20 @@ export default function SnapshotPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">{summary.totalItems.toLocaleString()}</div>
-              <div className="text-sm text-gray-600">Total Items</div>
+              <div className="text-2xl font-bold text-foreground">{summary.totalItems.toLocaleString()}</div>
+              <div className="text-sm text-muted-foreground">Total Items</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-red-600">{summary.criticalItems.toLocaleString()}</div>
-              <div className="text-sm text-gray-600">Action Required</div>
+              <div className="text-sm text-muted-foreground">Action Required</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-blue-600">{summary.averageCoverDays}</div>
-              <div className="text-sm text-gray-600">Avg Cover Days</div>
+              <div className="text-sm text-muted-foreground">Avg Cover Days</div>
             </CardContent>
           </Card>
           <Card>
@@ -121,7 +125,7 @@ export default function SnapshotPage() {
               <div className="text-2xl font-bold text-green-600">
                 {(summary.actionBreakdown['OK'] || 0).toLocaleString()}
               </div>
-              <div className="text-sm text-gray-600">Items OK</div>
+              <div className="text-sm text-muted-foreground">Items OK</div>
             </CardContent>
           </Card>
         </div>

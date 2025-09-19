@@ -70,6 +70,19 @@ export const columns: ColumnDef<WorkOrder>[] = [
     }
   },
   {
+    accessorKey: 'StartDate',
+    header: ({ column }) => (
+      <Button title="When work actually started" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-8 px-2">
+        Started
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const iso = row.getValue('StartDate') as string | null
+      return <span className="text-sm">{iso ? new Date(iso).toLocaleDateString() : '-'}</span>
+    }
+  },
+  {
     accessorKey: 'AgeDays',
     header: ({ column }) => (
       <Button title="Age in days" variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-8 px-2">

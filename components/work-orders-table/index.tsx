@@ -17,7 +17,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Download, Search, ArrowUpDown, ArrowUp, ArrowDown, Filter } from 'lucide-react'
+import { Download, Search, ArrowUpDown, ArrowUp, ArrowDown, Filter, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -73,7 +73,7 @@ export function WorkOrdersTable({ data, isLoading = false }: WorkOrdersTableProp
   const paddingBottom = virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0
 
   const exportToCSV = () => {
-    const headers = ['WorkOrderId','Status','Priority','ServiceType','Site','Technician','CreatedDate','PromisedDate','ClosedDate','AgeDays']
+    const headers = ['WorkOrderId','Status','Priority','ServiceType','Site','Technician','CreatedDate','StartDate','PromisedDate','ClosedDate','AgeDays']
     const csv = [
       headers.join(','),
       ...data.map(w => [
@@ -84,6 +84,7 @@ export function WorkOrdersTable({ data, isLoading = false }: WorkOrdersTableProp
         w.Site || '',
         w.Technician || '',
         w.CreatedDate,
+        w.StartDate || '',
         w.PromisedDate || '',
         w.ClosedDate || '',
         w.AgeDays
@@ -428,6 +429,78 @@ export function WorkOrdersTable({ data, isLoading = false }: WorkOrdersTableProp
           )}
         </AnimatePresence>
       </div>
+
+      {/* Pagination */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="flex items-center justify-between p-6 border-t border-muted/20 bg-gradient-to-r from-background/80 to-muted/5 backdrop-blur-sm"
+      >
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.7 }}
+          className="text-sm text-muted-foreground font-medium"
+        >
+          Showing <span className="text-foreground font-semibold">{table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}</span> to{' '}
+          <span className="text-foreground font-semibold">
+            {Math.min(
+              (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+              table.getFilteredRowModel().rows.length
+            )}
+          </span>{' '}
+          of <span className="text-foreground font-semibold">{table.getFilteredRowModel().rows.length.toLocaleString()}</span> work orders
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.8 }}
+          className="flex items-center gap-2"
+        >
+          {[
+            { icon: ChevronsLeft, onClick: () => table.setPageIndex(0), disabled: !table.getCanPreviousPage() },
+            { icon: ChevronLeft, onClick: () => table.previousPage(), disabled: !table.getCanPreviousPage() },
+          ].map((btn, index) => (
+            <motion.div key={index} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={btn.onClick}
+                disabled={btn.disabled}
+                className="h-9 w-9 p-0 bg-background/60 border-muted/30 hover:border-muted hover:bg-background hover:shadow-md transition-all duration-200 backdrop-blur-sm disabled:opacity-30"
+              >
+                <btn.icon className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          ))}
+
+          <div className="flex items-center gap-2 text-sm mx-4 px-4 py-2 bg-primary/5 border border-primary/10 rounded-lg backdrop-blur-sm">
+            <span className="text-muted-foreground">Page</span>
+            <span className="font-bold text-primary text-base">{table.getState().pagination.pageIndex + 1}</span>
+            <span className="text-muted-foreground">of</span>
+            <span className="font-semibold">{table.getPageCount()}</span>
+          </div>
+
+          {[
+            { icon: ChevronRight, onClick: () => table.nextPage(), disabled: !table.getCanNextPage() },
+            { icon: ChevronsRight, onClick: () => table.setPageIndex(table.getPageCount() - 1), disabled: !table.getCanNextPage() },
+          ].map((btn, index) => (
+            <motion.div key={index + 2} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={btn.onClick}
+                disabled={btn.disabled}
+                className="h-9 w-9 p-0 bg-background/60 border-muted/30 hover:border-muted hover:bg-background hover:shadow-md transition-all duration-200 backdrop-blur-sm disabled:opacity-30"
+              >
+                <btn.icon className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.div>
     </Card>
     </motion.div>
   )

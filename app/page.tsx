@@ -8,11 +8,17 @@ import { KpiCard } from '@/components/kpi-card'
 import { LastUpdated } from '@/components/last-updated'
 import { SynapseStatus } from '@/components/synapse-status'
 import { WorkOrder, SnapshotRow, ApiFilters } from '@/lib/types'
-import { 
-  calculateOpenWorkOrders, 
-  calculateAgeingBuckets, 
-  calculatePartsBelowSafety, 
-  calculateBelowSafetyNoSupply,
+import {
+  calculateOpenWorkOrders,
+  calculateAgeingBuckets,
+  calculatePartsBelowSafety,
+  calculateCriticalItems,
+  calculateAverageResolutionTime,
+  calculateOpenWIPValue,
+  calculateLabourAndOtherCosts,
+  calculatePartsCost,
+  calculateAverageGrossMargin,
+  calculateMonthToDateRevenue,
   getWorstAgeingBucket,
   calculateWeeklyTrend
 } from '@/lib/kpi'
@@ -22,6 +28,9 @@ import { getSiteOptions } from '@/lib/sites'
 import useSWRImmutable from 'swr/immutable'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { MiniAgeingChart } from '@/components/mini-ageing-chart'
+import { useKeepAlive } from '@/hooks/useKeepAlive'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default function Dashboard() {
   const router = useRouter()
@@ -32,6 +41,9 @@ export default function Dashboard() {
     site: siteFromUrl ? [siteFromUrl] : undefined,
     horizon: parseInt(process.env.NEXT_PUBLIC_DEFAULT_HORIZON_DAYS || '30')
   })
+
+  // Keep database connection alive to prevent Synapse timeouts
+  useKeepAlive(4) // Keep alive every 4 minutes
   
   const selectedSite = filters.site?.[0]
   // Load sites from API; fallback to static list if unavailable
@@ -41,47 +53,60 @@ export default function Dashboard() {
     : getSiteOptions()
 
   // Fetch data using SWR (only after site selected)
+  const workOrdersKey = selectedSite ? SWR_KEYS.workOrders(filters) : null
   const { data: workOrders = [], error: woError, isLoading: woLoading } = useSWR<WorkOrder[]>(
-    selectedSite ? SWR_KEYS.workOrders(filters) : null,
+    workOrdersKey,
     fetcher,
     {
       // Load once: no auto revalidation or retries
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      revalidateIfStale: true,
+      revalidateIfStale: false,
       revalidateOnMount: true,
       shouldRetryOnError: false,
       refreshInterval: 0,
-      dedupingInterval: 10 * 60 * 1000, // 10 minutes
-    }
-  )
-  
-  const { data: snapshot = [], error: snapError, isLoading: snapLoading } = useSWR<SnapshotRow[]>(
-    selectedSite ? SWR_KEYS.snapshot(filters) : null,
-    fetcher,
-    {
-      revalidateOnFocus: true,
-      revalidateOnReconnect: false,
-      revalidateIfStale: true,
-      revalidateOnMount: true,
-      shouldRetryOnError: true,
-      onErrorRetry: (_err, _key, _cfg, revalidate, { retryCount }) => {
-        if (retryCount >= 2) return; // retry up to 2 times
-        const delay = 1500 * (retryCount + 1);
-        setTimeout(() => revalidate({ retryCount: retryCount + 1 }), delay);
-      },
-      refreshInterval: 0,
-      dedupingInterval: 10 * 60 * 1000,
+      dedupingInterval: 2 * 60 * 1000, // 2 minutes deduping
     }
   )
 
-  // Ensure a fetch happens once on mount and when filters change
-  useEffect(() => {
-    if (selectedSite) {
-      mutate(SWR_KEYS.workOrders(filters))
-      mutate(SWR_KEYS.snapshot(filters))
+  // Fetch posted work orders for resolution time calculation (only Posted orders are truly completed)
+  const completedFilters = { ...filters, status: ['Posted'] }
+  const completedWorkOrdersKey = selectedSite ? SWR_KEYS.workOrders(completedFilters) : null
+  const { data: completedWorkOrders = [], error: completedWoError, isLoading: completedWoLoading } = useSWR<WorkOrder[]>(
+    completedWorkOrdersKey,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      revalidateOnMount: true,
+      shouldRetryOnError: false,
+      refreshInterval: 0,
+      dedupingInterval: 2 * 60 * 1000, // 2 minutes deduping
     }
-  }, [selectedSite])
+  )
+  
+  const snapshotKey = selectedSite ? SWR_KEYS.snapshot(filters) : null
+  const { data: snapshot = [], error: snapError, isLoading: snapLoading } = useSWR<SnapshotRow[]>(
+    snapshotKey,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      revalidateOnMount: true,
+      shouldRetryOnError: true,
+      onErrorRetry: (_err, _key, _cfg, revalidate, { retryCount }) => {
+        if (retryCount >= 1) return; // retry only once
+        const delay = 2000;
+        setTimeout(() => revalidate({ retryCount: retryCount + 1 }), delay);
+      },
+      refreshInterval: 0,
+      dedupingInterval: 2 * 60 * 1000, // 2 minutes deduping
+    }
+  )
+
+  // SWR will automatically fetch when the key changes, no need to manually mutate
 
   // Keep URL in sync with selected site and persist to localStorage
   useEffect(() => {
@@ -103,25 +128,33 @@ export default function Dashboard() {
   }, [filters.site, router, searchParams])
 
   // Calculate KPIs
-  const openWoKpi = calculateOpenWorkOrders(workOrders)
-  const ageingBuckets = calculateAgeingBuckets(workOrders)
+  // Combine open and completed work orders for all WIP calculations
+  const allWorkOrdersForWip = [...workOrders, ...completedWorkOrders]
+  const openWoKpi = calculateOpenWorkOrders(allWorkOrdersForWip)
+  const ageingBuckets = calculateAgeingBuckets(allWorkOrdersForWip)
   const belowSafetyKpi = calculatePartsBelowSafety(snapshot)
-  const noSupplyKpi = calculateBelowSafetyNoSupply(snapshot)
+  const criticalKpi = calculateCriticalItems(snapshot)
+  const avgResolutionKpi = calculateAverageResolutionTime(completedWorkOrders)
+  const wipValueKpi = calculateOpenWIPValue(allWorkOrdersForWip)
+  const labourAndOtherKpi = calculateLabourAndOtherCosts(allWorkOrdersForWip)
+  const partsCostKpi = calculatePartsCost(allWorkOrdersForWip)
+  const grossMarginKpi = calculateAverageGrossMargin(completedWorkOrders)
+  const mtdRevenueKpi = calculateMonthToDateRevenue(completedWorkOrders)
   const worstAgeing = getWorstAgeingBucket(ageingBuckets)
-  const weeklyTrend = calculateWeeklyTrend(workOrders)
+  const weeklyTrend = calculateWeeklyTrend(allWorkOrdersForWip)
 
-  const isLoading = woLoading || snapLoading
-  const hasError = Boolean(woError || snapError)
+  const isLoading = woLoading || snapLoading || completedWoLoading
+  const hasError = Boolean(woError || snapError || completedWoError)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/5 to-muted/10">
       {/* Header */}
-      <header className="border-b bg-white">
+      <header className="border-b bg-background border-border">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Service Performance Dashboard</h1>
-              <p className="text-gray-600">Real-time monitoring and analytics</p>
+              <h1 className="text-2xl font-bold text-foreground">Service Performance Dashboard</h1>
+              <p className="text-muted-foreground">Real-time monitoring and analytics</p>
             </div>
             <div className="flex items-center gap-4">
               <nav className="flex gap-2">
@@ -137,7 +170,7 @@ export default function Dashboard() {
               </nav>
               {/* Single-site selector */}
               <select
-                className="border rounded px-2 py-1 text-sm"
+                className="border border-border rounded px-2 py-1 text-sm bg-background text-foreground"
                 value={selectedSite || ''}
                 onChange={(e) => {
                   const v = e.target.value || undefined
@@ -151,6 +184,7 @@ export default function Dashboard() {
               </select>
               <SynapseStatus />
               <LastUpdated />
+              <ThemeToggle />
               <Button variant="outline" size="sm">
                 <Settings className="h-4 w-4" />
               </Button>
@@ -176,48 +210,97 @@ export default function Dashboard() {
           </Card>
         )}
 
-        {/* KPI Strip */}
+        {/* KPI Dashboard - Strategic Layout */}
         {selectedSite && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <KpiCard
-            title="Open Work Orders"
-            hint="Open backlog drift this week = opens − closes in last 7 days"
-            data={{
-              ...openWoKpi,
-              delta: weeklyTrend.netChange,
-              deltaType: weeklyTrend.trendDirection === 'up' ? 'increase' : 
-                        weeklyTrend.trendDirection === 'down' ? 'decrease' : undefined
-            }}
-            color="text-blue-600"
-          />
-          
-          <KpiCard
-            title="Ageing (Worst)"
-            hint="Largest age bucket with open work orders"
-            data={{
-              value: worstAgeing.count,
-              caption: worstAgeing.label,
-              breakdown: ageingBuckets.reduce((acc, bucket) => {
-                if (bucket.count > 0) acc[bucket.label] = bucket.count
-                return acc
-              }, {} as Record<string, number>)
-            }}
-            color="text-amber-600"
-          />
-          
-          <KpiCard
-            title="Parts Below Safety"
-            hint="OnHand below safety (or min) threshold"
-            data={belowSafetyKpi}
-            color="text-orange-600"
-          />
-          
-          <KpiCard
-            title="Need Immediate Action"
-            hint="Below safety with no inbound in the horizon"
-            data={noSupplyKpi}
-            color="text-red-600"
-          />
+        <div className="space-y-8">
+          {/* First Row - 5 Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <KpiCard
+              title="Open Work Orders"
+              hint="Open backlog drift this week = opens − closes in last 7 days"
+              data={{
+                ...openWoKpi,
+                delta: weeklyTrend.netChange,
+                deltaType: weeklyTrend.trendDirection === 'up' ? 'increase' :
+                          weeklyTrend.trendDirection === 'down' ? 'decrease' : undefined
+              }}
+              color="text-blue-600"
+            />
+
+            <KpiCard
+              title="Avg Resolution Time"
+              hint="Average days from start to completion for completed work orders"
+              data={avgResolutionKpi}
+              color="text-indigo-600"
+            />
+
+            <KpiCard
+              title="Open WIP Value"
+              hint="Total cost of products and services on work in progress jobs"
+              data={wipValueKpi}
+              color="text-purple-600"
+            />
+
+            <KpiCard
+              title="Labour and Other Costs"
+              hint="Labour cost value in AUD with percentage of total WIP"
+              data={labourAndOtherKpi}
+              color="text-cyan-600"
+            />
+
+            <KpiCard
+              title="Parts Cost"
+              hint="Parts cost value in AUD with percentage of total WIP"
+              data={partsCostKpi}
+              color="text-emerald-600"
+            />
+          </div>
+
+          {/* Second Row - 5 Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <KpiCard
+              title="Month-to-Date Revenue"
+              hint="Revenue from work orders posted this month"
+              data={mtdRevenueKpi}
+              color="text-purple-600"
+            />
+
+            <KpiCard
+              title="Average Gross Margin"
+              hint="Average gross margin percentage for posted orders"
+              data={grossMarginKpi}
+              color="text-green-600"
+            />
+
+            <KpiCard
+              title="Ageing (Worst)"
+              hint="Largest age bucket with open work orders"
+              data={{
+                value: worstAgeing.count,
+                caption: worstAgeing.label,
+                customContent: (
+                  <div className="pt-4 border-t border-muted/20">
+                    <MiniAgeingChart buckets={ageingBuckets} />
+                  </div>
+                )
+              }}
+              color="text-amber-600"
+            />
+
+            <KpiCard
+              title="Parts Below Safety"
+              hint="OnHand below safety (or min) threshold"
+              data={belowSafetyKpi}
+              color="text-orange-600"
+            />
+
+            <KpiCard
+              title="Critical Items"
+              hint="Shortage or below threshold that needs action"
+              data={criticalKpi}
+              color="text-red-600"
+            />
+          </div>
         </div>
         )}
 
@@ -249,45 +332,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Quick Summary Cards */}
-        {selectedSite && !isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="cursor-pointer hover:shadow-md transition-shadow">
-              <CardContent className="p-6 text-center">
-                <Package className="h-8 w-8 mx-auto mb-3 text-blue-600" />
-                <h3 className="font-medium">Work Orders</h3>
-                <p className="text-sm text-gray-600">Explore and manage work orders</p>
-                <div className="mt-2 text-2xl font-bold text-blue-600">
-                  {openWoKpi.value.toLocaleString()}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="cursor-pointer hover:shadow-md transition-shadow">
-              <CardContent className="p-6 text-center">
-                <AlertTriangle className="h-8 w-8 mx-auto mb-3 text-orange-600" />
-                <h3 className="font-medium">Parts Below Safety</h3>
-                <p className="text-sm text-gray-600">Items requiring attention</p>
-                <div className="mt-2 text-2xl font-bold text-orange-600">
-                  {belowSafetyKpi.value.toLocaleString()}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Link href="/snapshot">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                <CardContent className="p-6 text-center">
-                  <AlertTriangle className="h-8 w-8 mx-auto mb-3 text-red-600" />
-                  <h3 className="font-medium">Critical Actions</h3>
-                  <p className="text-sm text-gray-600">Items needing immediate action</p>
-                  <div className="mt-2 text-2xl font-bold text-red-600">
-                    {noSupplyKpi.value.toLocaleString()}
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          </div>
-        )}
 
         {/* Data Summary */}
         {selectedSite && !isLoading && (

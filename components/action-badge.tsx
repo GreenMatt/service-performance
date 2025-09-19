@@ -28,7 +28,7 @@ export function ActionBadge({ action, className }: ActionBadgeProps) {
   const getLabel = (action: string) => {
     switch (action) {
       case 'RaisePO':
-        return 'Raise PO'
+        return 'Order/Transfer'
       default:
         return action
     }

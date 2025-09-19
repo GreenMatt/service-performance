@@ -77,7 +77,7 @@ export function SnapshotTable({
       columnFilters,
       expanded,
       globalFilter,
-      columnVisibility: { expand: hasExpandableRows },
+      columnVisibility: { expand: hasExpandableRows, SafetyStock: false },
     },
     initialState: {
       pagination: {
@@ -145,7 +145,7 @@ export function SnapshotTable({
 
   if (isLoading) {
     return (
-      <Card className="overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-background via-background to-muted/20">
+      <Card className="overflow-hidden border border-muted/20 bg-background">
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
@@ -252,11 +252,11 @@ export function SnapshotTable({
         >
           {[
             {
-              label: 'Action Required',
-              active: table.getColumn('Action')?.getFilterValue() === 'not-ok',
+              label: 'Critical',
+              active: table.getColumn('Action')?.getFilterValue() === 'critical',
               onClick: () => {
                 const current = table.getColumn('Action')?.getFilterValue()
-                table.getColumn('Action')?.setFilterValue(current === 'not-ok' ? '' : 'not-ok')
+                table.getColumn('Action')?.setFilterValue(current === 'critical' ? '' : 'critical')
               },
               color: 'bg-red-500/10 text-red-700 border-red-200 hover:bg-red-500/20'
             },
@@ -264,8 +264,9 @@ export function SnapshotTable({
               label: 'With Gap',
               active: !!table.getColumn('Gap')?.getFilterValue(),
               onClick: () => {
-                const hasFilter = table.getColumn('Gap')?.getFilterValue()
-                table.getColumn('Gap')?.setFilterValue(hasFilter ? undefined : (value: number) => value > 0)
+                const col = table.getColumn('Gap')
+                const current = col?.getFilterValue()
+                col?.setFilterValue(current ? undefined : 'positive')
               },
               color: 'bg-amber-500/10 text-amber-700 border-amber-200 hover:bg-amber-500/20'
             },
@@ -330,7 +331,7 @@ export function SnapshotTable({
                   <th
                     key={header.id}
                     className={cn(
-                      "px-4 py-4 text-left text-sm font-semibold text-foreground/80 bg-background/95 backdrop-blur-md transition-all duration-200",
+                      "px-4 py-3 text-left text-sm font-semibold text-foreground/80 bg-background/95 backdrop-blur-md transition-all duration-200",
                       header.column.getCanSort() && "cursor-pointer hover:bg-muted/30 hover:text-foreground group",
                       header.column.getIsPinned() && "sticky z-50 bg-background/95 backdrop-blur-md shadow-lg"
                     )}
@@ -394,7 +395,7 @@ export function SnapshotTable({
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: cellIndex * 0.02, duration: 0.2 }}
                       className={cn(
-                        "px-4 py-4 text-sm transition-all duration-200 group-hover:text-foreground",
+                        "px-4 py-3 text-sm transition-all duration-200 group-hover:text-foreground",
                         cell.column.getIsPinned() && "sticky z-10 bg-background/95 backdrop-blur-md shadow-lg group-hover:bg-muted/10"
                       )}
                       style={{

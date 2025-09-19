@@ -16,7 +16,9 @@
       "Bash(\"/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/wbin/az\" login)",
       "Bash('/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/wbin/az.cmd' login)",
       "Bash(taskkill:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Read(//c/Users/bmuLawlessM/OneDrive - Bucher Municipal AG/Pictures/**)",
+      "Bash(echo $USE_MOCK_DATA)"
     ],
     "deny": [],
     "ask": []

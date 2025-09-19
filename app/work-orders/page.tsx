@@ -12,6 +12,7 @@ import { WorkOrder, ApiFilters } from '@/lib/types'
 import { fetcher, SWR_KEYS } from '@/lib/fetcher'
 import { WorkOrdersTable } from '@/components/work-orders-table'
 import { SynapseStatus } from '@/components/synapse-status'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default function WorkOrdersPage() {
   const router = useRouter()
@@ -56,11 +57,11 @@ export default function WorkOrdersPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-white border border-red-200 rounded-lg p-6">
-            <h1 className="text-xl font-semibold text-red-600 mb-2">Error Loading Work Orders</h1>
-            <p className="text-gray-600">Unable to fetch work orders. Check API connection.</p>
+          <div className="bg-card border border-destructive/20 rounded-lg p-6">
+            <h1 className="text-xl font-semibold text-destructive mb-2">Error Loading Work Orders</h1>
+            <p className="text-muted-foreground">Unable to fetch work orders. Check API connection.</p>
           </div>
         </div>
       </div>
@@ -68,8 +69,8 @@ export default function WorkOrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="border-b bg-white">
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-background border-border">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -80,11 +81,14 @@ export default function WorkOrdersPage() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Work Orders</h1>
-                <p className="text-gray-600">Open orders, statuses, and ageing</p>
+                <h1 className="text-2xl font-bold text-foreground">Work Orders</h1>
+                <p className="text-muted-foreground">Open orders, statuses, and ageing</p>
               </div>
             </div>
-            <SynapseStatus />
+            <div className="flex items-center gap-4">
+              <SynapseStatus />
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
@@ -94,19 +98,19 @@ export default function WorkOrdersPage() {
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-blue-600">{workOrders.length.toLocaleString()}</div>
-              <div className="text-sm text-gray-600">Work Orders</div>
+              <div className="text-sm text-muted-foreground">Work Orders</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-amber-600">{workOrders.filter(w => ['Unscheduled','InProgress','Scheduled'].includes(w.Status)).length.toLocaleString()}</div>
-              <div className="text-sm text-gray-600">Active</div>
+              <div className="text-sm text-muted-foreground">Active</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">{workOrders.filter(w => ['Completed','Posted','Canceled'].includes(w.Status)).length.toLocaleString()}</div>
-              <div className="text-sm text-gray-600">Completed/Posted/Canceled</div>
+              <div className="text-2xl font-bold text-foreground">{workOrders.filter(w => ['Completed','Posted','Canceled'].includes(w.Status)).length.toLocaleString()}</div>
+              <div className="text-sm text-muted-foreground">Completed/Posted/Canceled</div>
             </CardContent>
           </Card>
         </div>

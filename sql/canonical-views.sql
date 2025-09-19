@@ -54,37 +54,39 @@ WHERE wt.DataAreaId = 'mau1'
 GROUP BY wt.ordernum, wt.DataAreaId;
 
 -- D) Service Inventory Snapshot (warehouse grain) with inbound horizon
-CREATE OR ALTER VIEW dbo.vw_ServiceInventorySnapshot_AU AS
+CREATE OR ALTER VIEW bm.vw_ServiceInventorySnapshot_AU AS
 WITH Params AS (
   SELECT CAST(30 AS int) AS HorizonDays, CAST('mau1' AS sysname) AS DataAreaId
 ),
--- Demand (Service orders only)
-SalesAnalysis AS (
-  SELECT SL.ItemId AS ItemNumber,
-         CAST(SL.ShippingDateRequested AS date) AS ReqDate,
-         SL.SalesQty AS OrderedQty,
-         ID.InventSiteId, ID.InventLocationId, ID.DataAreaId
-  FROM dbo.SalesLine SL
-  JOIN dbo.SalesTable ST ON ST.SalesId=SL.SalesId AND ST.DataAreaId=SL.DataAreaId
-  LEFT JOIN dbo.InventDim ID ON ID.InventDimId=SL.InventDimId AND ID.DataAreaId=SL.DataAreaId
-  LEFT JOIN dbo.inventitemgroupitem IG ON IG.ItemId=SL.ItemId AND IG.ItemDataAreaId=SL.DataAreaId
-  CROSS JOIN Params P
-  WHERE SL.SalesStatus<>5 AND ST.hsoordertypeid='Service' AND IG.ItemGroupId IN ('10','15','20')
-    AND LOWER(ST.DataAreaId)=LOWER(P.DataAreaId)
-),
-DemandStatsByWarehouse AS (
-  SELECT SA.ItemNumber, SA.InventLocationId,
+  -- Demand (Service orders only) -- use OPEN physical demand only
+  SalesAnalysis AS (
+    SELECT SL.ItemId AS ItemNumber,
+           CAST(SL.ShippingDateRequested AS date) AS ReqDate,
+           COALESCE(SL.RemainInventPhysical, 0) AS OpenQty,
+           ID.InventSiteId, ID.InventLocationId, ID.DataAreaId
+    FROM dbo.SalesLine SL
+    JOIN dbo.SalesTable ST ON ST.SalesId=SL.SalesId AND ST.DataAreaId=SL.DataAreaId
+    LEFT JOIN dbo.InventDim ID ON ID.InventDimId=SL.InventDimId AND ID.DataAreaId=SL.DataAreaId
+    LEFT JOIN dbo.InventItemGroupItem IG ON IG.ItemId=SL.ItemId AND IG.ItemDataAreaId=SL.DataAreaId
+    CROSS JOIN Params P
+    WHERE COALESCE(SL.RemainInventPhysical,0) > 0
+      AND ST.hsoordertypeid='Service'
+      AND IG.ItemGroupId IN ('10','15','20')
+      AND LOWER(ST.DataAreaId)=LOWER(P.DataAreaId)
+  ),
+  DemandStatsByWarehouse AS (
+    SELECT SA.ItemNumber, SA.InventLocationId,
          COUNT(*) AS OrderFrequency,
-         AVG(SA.OrderedQty) AS AvgDemandPerOrder,
-         SUM(SA.OrderedQty) AS TotalDemand,
-         STDEV(SA.OrderedQty) AS DemandStdDev,
+         AVG(SA.OpenQty) AS AvgDemandPerOrder,
+         SUM(SA.OpenQty) AS TotalDemand,
+         STDEV(SA.OpenQty) AS DemandStdDev,
          DATEDIFF(DAY, MIN(SA.ReqDate), MAX(SA.ReqDate)) AS AnalysisPeriodDays,
          CASE WHEN DATEDIFF(DAY, MIN(SA.ReqDate), MAX(SA.ReqDate))>0
-              THEN SUM(SA.OrderedQty)/CAST(DATEDIFF(DAY, MIN(SA.ReqDate), MAX(SA.ReqDate)) AS float)
+              THEN SUM(SA.OpenQty)/CAST(DATEDIFF(DAY, MIN(SA.ReqDate), MAX(SA.ReqDate)) AS float)
               ELSE 0 END AS AvgDailyDemand
-  FROM SalesAnalysis SA
-  GROUP BY SA.ItemNumber, SA.InventLocationId
-),
+    FROM SalesAnalysis SA
+    GROUP BY SA.ItemNumber, SA.InventLocationId
+  ),
 -- Inventory rollup
 InventoryByWarehouse AS (
   SELECT s.ItemId, s.InventLocationId,
@@ -100,25 +102,24 @@ InventoryByWarehouse AS (
 InboundPO AS (
   SELECT PL.ItemId, ID.InventLocationId,
          SUM(COALESCE(PL.RemainPurchPhysical,0)) AS InboundQtyHorizon,
-         MIN(COALESCE(PL.ConfirmedDlvDate, PL.RequestedDlvDate, PL.DeliveryDate)) AS NextETA
+         MIN(COALESCE(PL.confirmedshipdate, PL.deliverydate)) AS NextETA
   FROM dbo.PurchLine PL
   JOIN dbo.InventDim ID ON ID.InventDimId=PL.InventDimId AND ID.DataAreaId=PL.DataAreaId
   CROSS JOIN Params P
-  WHERE PL.DataAreaId=P.DataAreaId AND COALESCE(PL.RemainPurchPhysical,0)>0
-    AND COALESCE(PL.ConfirmedDlvDate, PL.RequestedDlvDate, PL.DeliveryDate)
+  WHERE LOWER(PL.DataAreaId)=LOWER(P.DataAreaId) AND COALESCE(PL.RemainPurchPhysical,0)>0
+    AND COALESCE(PL.confirmedshipdate, PL.deliverydate)
         <= DATEADD(DAY, P.HorizonDays, CAST(GETDATE() AS date))
   GROUP BY PL.ItemId, ID.InventLocationId
 ),
 InboundTO AS (
   SELECT ITL.ItemId, ITL.ToInventLocationId AS InventLocationId,
          SUM(COALESCE(ITL.QtyRemainReceive,0)) AS InboundQtyHorizon,
-         MIN(COALESCE(ITL.ConfirmedDlvDate, ITL.DlvDate)) AS NextETA
+         MIN(ITL.receivedate) AS NextETA
   FROM dbo.InventTransferLine ITL
   JOIN dbo.InventTransferTable ITT ON ITT.InventTransferId=ITL.InventTransferId
   CROSS JOIN Params P
-  WHERE ITL.DataAreaId=P.DataAreaId AND COALESCE(ITL.QtyRemainReceive,0)>0
-    AND COALESCE(ITL.ConfirmedDlvDate, ITL.DlvDate)
-        <= DATEADD(DAY, P.HorizonDays, CAST(GETDATE() AS date))
+  WHERE LOWER(ITL.DataAreaId)=LOWER(P.DataAreaId) AND COALESCE(ITL.QtyRemainReceive,0)>0
+    AND ITL.receivedate <= DATEADD(DAY, P.HorizonDays, CAST(GETDATE() AS date))
   GROUP BY ITL.ItemId, ITL.ToInventLocationId
 ),
 InboundHorizon AS (
@@ -173,6 +174,6 @@ FROM AllKeys k
 LEFT JOIN InventoryByWarehouse iw ON iw.ItemId=k.ItemNumber AND iw.InventLocationId=k.InventLocationId
 LEFT JOIN DemandStatsByWarehouse ds ON ds.ItemNumber=k.ItemNumber AND ds.InventLocationId=k.InventLocationId
 LEFT JOIN InboundHorizon ih ON ih.ItemId=k.ItemNumber AND ih.InventLocationId=k.InventLocationId
-LEFT JOIN dbo.vw_ItemCoverage cov ON cov.ItemId=k.ItemNumber AND cov.InventLocationId=k.InventLocationId AND cov.rn=1
+LEFT JOIN bm.vw_ItemCoverage_AU cov ON cov.ItemId=k.ItemNumber AND cov.InventLocationId=k.InventLocationId AND cov.rn=1
 LEFT JOIN dbo.InventLocation il ON il.InventLocationId=k.InventLocationId
 LEFT JOIN dbo.InventSite id ON id.InventSiteId=il.InventSiteId;
