@@ -1,3 +1,4 @@
+
 # Service Inventory Snapshot View - Documentation
 
 ## Overview

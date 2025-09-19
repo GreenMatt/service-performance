@@ -84,36 +84,107 @@
   .dashboard-card {
     @apply bg-card rounded-2xl border border-border shadow-sm p-6;
   }
-  
+
   .kpi-value {
     @apply text-3xl font-bold tracking-tight;
   }
-  
+
   .kpi-label {
     @apply text-sm text-muted-foreground;
   }
-  
+
   .status-badge {
     @apply px-2 py-1 rounded-full text-xs font-medium;
   }
-  
+
   .action-badge-ok {
     @apply status-badge bg-green-100 text-green-800;
   }
-  
+
   .action-badge-expedite {
     @apply status-badge bg-amber-100 text-amber-800;
   }
-  
+
   .action-badge-transfer {
     @apply status-badge bg-cyan-100 text-cyan-800;
   }
-  
+
   .action-badge-raise-po {
     @apply status-badge bg-rose-100 text-rose-800;
   }
-  
+
   .action-badge-reallocate {
     @apply status-badge bg-purple-100 text-purple-800;
+  }
+
+  /* Premium table scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-track-transparent {
+    scrollbar-color: transparent transparent;
+  }
+
+  .scrollbar-thumb-muted {
+    scrollbar-color: hsl(var(--muted)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-track-transparent::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thumb-muted\/30::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted) / 0.3);
+    border-radius: 3px;
+  }
+
+  .hover\:scrollbar-thumb-muted\/50:hover::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted) / 0.5);
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Shimmer effect for loading states */
+  .shimmer {
+    background: linear-gradient(90deg,
+      hsl(var(--muted) / 0.1) 0%,
+      hsl(var(--muted) / 0.3) 50%,
+      hsl(var(--muted) / 0.1) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Enhanced hover effects */
+  .table-row-hover {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .table-row-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Gradient borders */
+  .gradient-border {
+    position: relative;
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(45deg, hsl(var(--primary)), hsl(var(--accent))) border-box;
+    border: 1px solid transparent;
   }
 }
